@@ -14,13 +14,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Utilities
 {
     public static HashMap<String, TvSeriesData> AllSeries;
     public static int Success = 1;
-//    public static int Error = 0;
+    public static HashMap<String, ArrayList<EpisodeData>> AllUpdates;
 
     public static class JsonParser
     {
@@ -38,10 +39,47 @@ public class Utilities
         }
     }
 
+    public static class EpisodeData
+    {
+        public String episode_name;
+        public ArrayList<DownloadsData> download_links;
+
+        public EpisodeData( final String episode_name )
+        {
+            this.episode_name = episode_name;
+            download_links = new ArrayList<>();
+        }
+
+        public void AddDownloadsData( final DownloadsData data )
+        {
+            download_links.add( data );
+        }
+    }
+
+    public static class DownloadsData
+    {
+        public String download_type;
+        public String download_link;
+
+        public DownloadsData( final String download_type, final String download_link )
+        {
+            this.download_type = download_type;
+            this.download_link = download_link;
+        }
+    }
+
     public static class TvSeriesData
     {
         public String series_name;
         private Long   series_id;
+        private boolean is_subscribed;
+
+        public TvSeriesData( final String title, final long id, final boolean subscribed )
+        {
+            series_name = title;
+            series_id = id;
+            is_subscribed = subscribed;
+        }
 
         public boolean IsSubscribed() {
             return is_subscribed;
@@ -54,16 +92,9 @@ public class Utilities
         public void SetIsSubscribed( boolean is_subscribed ) {
             this.is_subscribed = is_subscribed;
         }
-
-        private boolean is_subscribed;
-
-        public TvSeriesData( final String title, final long id, final boolean subscribed )
-        {
-            series_name = title;
-            series_id = id;
-            is_subscribed = subscribed;
+        public long GetSeriesID() {
+            return series_id;
         }
-
         public JSONObject ToJson() throws JSONException
         {
             JSONObject data = new JSONObject();
@@ -74,6 +105,7 @@ public class Utilities
             return data;
         }
     }
+
     public static String ReadDataFile( final Context context, final String filename ) throws IOException
     {
         BufferedReader reader = null;
@@ -142,5 +174,46 @@ public class Utilities
         } finally {
             if( writer != null ) writer.close();
         }
+    }
+
+    public static HashMap<String, ArrayList<EpisodeData>> ReadTvUpdates( final Context context, final String filename )
+            throws JSONException, IOException
+    {
+        HashMap<String, ArrayList<EpisodeData>> data_map = new HashMap<>();
+        String data_string;
+        try {
+            data_string = ReadDataFile( context, filename );
+        } catch (IOException except ){
+            FileOutputStream output_stream = context.openFileOutput( filename, Context.MODE_PRIVATE );
+            Writer writer = new OutputStreamWriter( output_stream );
+            data_string = "[]";
+            writer.write( data_string );
+            writer.close();
+        }
+
+        JSONArray root_data = new JsonParser().ParseListOfObjects( data_string );
+        for( int i = 0; i != root_data.length(); ++i ){
+            final JSONObject data_item = root_data.getJSONObject( i );
+            final String date = data_item.getString( "date" );
+            final JSONArray detail = data_item.getJSONArray( "detail" );
+            ArrayList<EpisodeData> episodes = new ArrayList<>();
+
+            for( int j = 0 ; j != detail.length(); ++j ){
+                final JSONObject tv_data = detail.getJSONObject( j );
+                final String episode_name = tv_data.getString( "name" );
+                final JSONArray dl_links = tv_data.getJSONArray( "dl_links" );
+                EpisodeData episode = new EpisodeData( episode_name );
+
+                for( int x = 0; x != dl_links.length(); ++x ){
+                    final JSONObject download_data = dl_links.getJSONObject( x );
+                    final String download_type = download_data.getString( "type" );
+                    final String download_link = download_data.getString( "link" );
+                    episode.AddDownloadsData( new DownloadsData( download_type, download_link ) );
+                }
+                episodes.add( episode );
+            }
+            data_map.put( date, episodes );
+        }
+        return data_map;
     }
 }

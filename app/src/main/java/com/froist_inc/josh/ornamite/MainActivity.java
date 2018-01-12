@@ -13,24 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.HashMap;
-
 public class MainActivity extends AppCompatActivity
 {
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    private SectionsPagerAdapter sections_pager_adapter;
-    private HashMap<Long, String> all_tv_series;
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    private ViewPager view_pager;
 
     @Override
     protected void onCreate( Bundle saved_instance_bundle )
@@ -42,10 +26,10 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar( toolbar );
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        sections_pager_adapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        SectionsPagerAdapter sections_pager_adapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        view_pager = (ViewPager) findViewById(R.id.container);
+        ViewPager view_pager = (ViewPager) findViewById(R.id.container);
         assert view_pager != null;
         view_pager.setAdapter(sections_pager_adapter);
 
@@ -54,24 +38,13 @@ public class MainActivity extends AppCompatActivity
         tabLayout.setupWithViewPager(view_pager);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
     public static class PlaceholderFragment extends Fragment
     {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
         private static final String ARG_SECTION_NUMBER = "section_number";
 
         public PlaceholderFragment() {
         }
 
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
         public static PlaceholderFragment newInstance( int sectionNumber )
         {
             PlaceholderFragment fragment = new PlaceholderFragment();
@@ -105,10 +78,12 @@ public class MainActivity extends AppCompatActivity
         @Override
         public Fragment getItem( int position )
         {
-            switch (position){
+            switch ( position ) {
                 case 0:
                     return new AllSeriesFragment();
-                case 1: case 2: default:
+                case 1:
+                    return new UpdatesFragment();
+                case 2: default:
                     return PlaceholderFragment.newInstance( position + 1 );
             }
         }
