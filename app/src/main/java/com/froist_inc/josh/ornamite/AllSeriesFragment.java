@@ -161,9 +161,9 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
     }
 
     @Override
-    public void onListItemClick( ListView l, View v, int position, long id )
+    public void onListItemClick( ListView list_view, View v, int position, long id )
     {
-        final String show_name = keys.get( position );
+        final String show_name = (( AllSeriesAdapter )list_view.getAdapter()).getItem( position );
         final Utilities.TvSeriesData data = Utilities.AllSeries.get( show_name );
         Intent intent = new Intent( getActivity(), ListSeasonsActivity.class );
         intent.putExtra( ListSeasonsActivity.SHOW_NAME, show_name );

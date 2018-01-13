@@ -1,6 +1,15 @@
 package com.froist_inc.josh.ornamite;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -54,6 +63,21 @@ public class Utilities
         {
             download_links.add( data );
         }
+
+        public JSONObject ToJson() throws JSONException
+        {
+            JSONArray download_list = new JSONArray();
+            for( int i = 0; i != this.download_links.size(); ++i ){
+                JSONObject item = new JSONObject();
+                item.put( "type", this.download_links.get( i ).download_type );
+                item.put( "link", this.download_links.get( i ).download_link );
+                download_list.put( item );
+            }
+            JSONObject episode_object = new JSONObject();
+            episode_object.put( "name", this.episode_name );
+            episode_object.put( "dl_links", download_list );
+            return episode_object;
+        }
     }
 
     public static class DownloadsData
@@ -65,6 +89,41 @@ public class Utilities
         {
             this.download_type = download_type;
             this.download_link = download_link;
+        }
+    }
+
+    public static class DownloadLinksAdapter extends ArrayAdapter<DownloadsData>
+    {
+        final Context context;
+        DownloadLinksAdapter( final Context context, final ArrayList<Utilities.DownloadsData> download_list )
+        {
+            super( context, 0, download_list );
+            this.context = context;
+        }
+
+        @Override
+        public View getView( int position, View convert_view, ViewGroup parent )
+        {
+            if( convert_view == null ){
+                LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+                convert_view = inflater.inflate( R.layout.list_links_item, parent, false );
+            }
+            final Utilities.DownloadsData data = getItem( position );
+            TextView download_type_text = ( TextView ) convert_view.findViewById( R.id.link_type_text );
+            download_type_text.setText( data.download_type );
+            Button copy_link_button = (Button) convert_view.findViewById( R.id.copy_link_button );
+            copy_link_button.setOnClickListener( new View.OnClickListener() {
+                @Override
+                public void onClick( View v )
+                {
+                    ClipData clip = ClipData.newPlainText( "Download Link", data.download_link );
+                    final ClipboardManager clipboard = (ClipboardManager) context
+                            .getSystemService( Context.CLIPBOARD_SERVICE );
+                    clipboard.setPrimaryClip( clip );
+                    Toast.makeText( context, "Link copied", Toast.LENGTH_SHORT ).show();
+                }
+            });
+            return convert_view;
         }
     }
 
@@ -215,5 +274,28 @@ public class Utilities
             data_map.put( date, episodes );
         }
         return data_map;
+    }
+    public static void WriteTvUpdateData( final Context context, final String filename,
+                                          final HashMap<String, ArrayList<EpisodeData>> data )
+            throws JSONException, IOException
+    {
+        if( data.isEmpty() ) return;
+        JSONArray root_list = new JSONArray();
+        for( HashMap.Entry<String, ArrayList<EpisodeData>> entry : data.entrySet() )
+        {
+            JSONObject item = new JSONObject();
+            JSONArray item_detail = new JSONArray();
+            ArrayList<EpisodeData> data_list = entry.getValue();
+            if( data_list != null ) {
+                for (int i = 0; i != data_list.size(); ++i ){
+                    final EpisodeData episode = data_list.get( i );
+                    item_detail.put( episode.ToJson() );
+                }
+            }
+            item.put( "date", entry.getKey() );
+            item.put( "detail", item_detail );
+            root_list.put( item );
+        }
+        WriteDataToDisk( context, filename, root_list.toString() );
     }
 }

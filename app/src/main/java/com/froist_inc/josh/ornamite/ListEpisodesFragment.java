@@ -1,7 +1,5 @@
 package com.froist_inc.josh.ornamite;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,7 +17,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -193,7 +190,7 @@ public class ListEpisodesFragment extends ListFragment
                 {
                     ListView link_view = new ListView( getActivity() );
                     link_view.setId( R.id.download_link_list );
-                    link_view.setAdapter( new DownloadLinksAdapter( getActivity(), data_item.download_links ));
+                    link_view.setAdapter( new Utilities.DownloadLinksAdapter( getActivity(), data_item.download_links ));
                     AlertDialog dialog = new AlertDialog.Builder( ListEpisodesFragment.this.getContext() )
                             .setPositiveButton( android.R.string.ok, null ).setTitle( "Download links" )
                             .setView( link_view ).create();
@@ -204,37 +201,6 @@ public class ListEpisodesFragment extends ListFragment
         }
     }
 
-    class DownloadLinksAdapter extends ArrayAdapter<Utilities.DownloadsData>
-    {
-        DownloadLinksAdapter( final Context context, final ArrayList<Utilities.DownloadsData> download_list )
-        {
-            super( context, 0, download_list );
-        }
-
-        @Override
-        public View getView( int position, View convert_view, ViewGroup parent )
-        {
-            if( convert_view == null ){
-                convert_view = getActivity().getLayoutInflater().inflate( R.layout.list_links_item, parent, false );
-            }
-            final Utilities.DownloadsData data = getItem( position );
-            TextView download_type_text = ( TextView ) convert_view.findViewById( R.id.link_type_text );
-            download_type_text.setText( data.download_type );
-            Button copy_link_button = (Button) convert_view.findViewById( R.id.copy_link_button );
-            copy_link_button.setOnClickListener( new View.OnClickListener() {
-                @Override
-                public void onClick( View v )
-                {
-                    ClipData clip = ClipData.newPlainText( "Download Link", data.download_link );
-                    final ClipboardManager clipboard = (ClipboardManager) getActivity()
-                            .getSystemService( Context.CLIPBOARD_SERVICE );
-                    clipboard.setPrimaryClip( clip );
-                    Toast.makeText( getActivity(), "Link copied", Toast.LENGTH_SHORT ).show();
-                }
-            });
-            return convert_view;
-        }
-    }
     public static Fragment GetInstance( final String title, final long season_id )
     {
         Bundle extra_argument = new Bundle();
