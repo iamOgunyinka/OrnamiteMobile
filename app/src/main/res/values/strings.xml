@@ -13,4 +13,5 @@
     <string name="show_links">Show links</string>
     <string name="loading">Loading&#8230;</string>
     <string name="no_updates">No updates available, you may refresh</string>
+    <string name="automatic_check">Automatic Check</string>
 </resources>

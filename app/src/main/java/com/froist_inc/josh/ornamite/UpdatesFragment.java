@@ -51,7 +51,7 @@ public class UpdatesFragment extends Fragment
     public void onCreateOptionsMenu( Menu menu, MenuInflater inflater )
     {
         super.onCreateOptionsMenu( menu, inflater );
-        inflater.inflate( R.menu.other_menu, menu );
+        inflater.inflate( R.menu.update_menu, menu );
         refresh_menu = menu.findItem( R.id.action_refresh );
     }
 
@@ -60,8 +60,14 @@ public class UpdatesFragment extends Fragment
     {
         final int item_id = item.getItemId();
         switch( item_id ){
-            case R.id.action_refresh:
+            case R.id.action_refresh_menu:
                 RefreshTodaysUpdate();
+                return true;
+            case R.id.action_automatic_check_menu:
+                boolean alarm_started = !UpdateBackgroundService.IsServiceAlarmOn( getActivity() );
+                getActivity().invalidateOptionsMenu();
+                item.setChecked( alarm_started );
+                UpdateBackgroundService.SetServiceAlarm( getActivity(), alarm_started );
                 return true;
             default:
                 return super.onOptionsItemSelected( item );

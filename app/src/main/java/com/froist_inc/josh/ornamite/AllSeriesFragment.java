@@ -45,6 +45,8 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
         super.onCreate( saved_bundle_instance );
         ReadSourceFile();
         setHasOptionsMenu( true );
+
+        UpdateBackgroundService.SetServiceAlarm( getActivity(), true );
     }
 
     @Override
