@@ -52,7 +52,7 @@ public class UpdatesFragment extends Fragment
     {
         super.onCreateOptionsMenu( menu, inflater );
         inflater.inflate( R.menu.update_menu, menu );
-        refresh_menu = menu.findItem( R.id.action_refresh );
+        refresh_menu = menu.findItem( R.id.action_refresh_menu );
     }
 
     @Override
@@ -64,14 +64,20 @@ public class UpdatesFragment extends Fragment
                 RefreshTodaysUpdate();
                 return true;
             case R.id.action_automatic_check_menu:
-                boolean alarm_started = !UpdateBackgroundService.IsServiceAlarmOn( getActivity() );
-                getActivity().invalidateOptionsMenu();
-                item.setChecked( alarm_started );
-                UpdateBackgroundService.SetServiceAlarm( getActivity(), alarm_started );
+                boolean should_start_alarm = !UpdateBackgroundService.IsServiceAlarmOn( getActivity() );
+                UpdateBackgroundService.SetServiceAlarm( getActivity(), should_start_alarm );
                 return true;
             default:
                 return super.onOptionsItemSelected( item );
         }
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu)
+    {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem automatic_update_item = menu.findItem( R.id.action_automatic_check_menu );
+        automatic_update_item.setChecked( UpdateBackgroundService.IsServiceAlarmOn( getActivity() ) );
     }
 
     @Override
@@ -170,7 +176,7 @@ public class UpdatesFragment extends Fragment
                             "Could not get any data from the server";
                     if( result != null && ( result.getInt("status") == Utilities.Success )){
                         JSONArray details = result.getJSONArray( "detail" );
-                        final HashMap<String, ArrayList<Utilities.EpisodeData>> parsing_result = ParseResultAndDisplay( details );
+                        final HashMap<String, ArrayList<Utilities.EpisodeData>> parsing_result = ParseResult( details );
                         main_ui_handler.post( new Runnable() {
                             @Override
                             public void run()
@@ -199,7 +205,7 @@ public class UpdatesFragment extends Fragment
         new_thread.start();
     }
 
-    private HashMap<String, ArrayList<Utilities.EpisodeData>> ParseResultAndDisplay( final JSONArray result_list )
+    public static HashMap<String, ArrayList<Utilities.EpisodeData>> ParseResult( final JSONArray result_list )
     {
         HashMap<String, ArrayList<Utilities.EpisodeData>> today_data = new HashMap<>();
         try {
@@ -224,18 +230,22 @@ public class UpdatesFragment extends Fragment
                 }
             }
 
-            final Calendar calendar = GregorianCalendar.getInstance();
-            final int day = calendar.get( Calendar.DAY_OF_MONTH );
-            final int year = calendar.get( Calendar.YEAR );
-            final String day_of_week = calendar.getDisplayName( Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.US );
-            final String month_of_year = calendar.getDisplayName( Calendar.MONTH, Calendar.LONG, Locale.US );
-            final String today = String.format( Locale.US, "%s, %s %d, %d", day_of_week, month_of_year, day, year );
-
+            final String today = TodaysDate();
             today_data.put( today, tv_series_updates );
         } catch ( JSONException exception ){
             Log.v( "ParseUpdateResult", exception.getLocalizedMessage() );
         }
         return today_data;
+    }
+
+    public static String TodaysDate()
+    {
+        final Calendar calendar = GregorianCalendar.getInstance();
+        final int day = calendar.get( Calendar.DAY_OF_MONTH );
+        final int year = calendar.get( Calendar.YEAR );
+        final String day_of_week = calendar.getDisplayName( Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.US );
+        final String month_of_year = calendar.getDisplayName( Calendar.MONTH, Calendar.LONG, Locale.US );
+        return String.format( Locale.US, "%s, %s %d, %d", day_of_week, month_of_year, day, year );
     }
 
     private void OnFetchFailed( final String message )
