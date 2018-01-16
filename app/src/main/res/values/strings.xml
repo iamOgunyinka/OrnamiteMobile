@@ -8,10 +8,9 @@
     <string name="subscribe">Subscribe</string>
     <string name="unsubscribe">Unsubscribe</string>
 
-    <string name="section_format">Hello World from section: %1$d</string>
     <string name="copy_link">Copy Link</string>
     <string name="show_links">Show links</string>
     <string name="loading">Loading&#8230;</string>
     <string name="no_updates">No updates available, you may refresh</string>
-    <string name="automatic_check">Automatic Check</string>
+    <string name="automatic_check">Notify me</string>
 </resources>

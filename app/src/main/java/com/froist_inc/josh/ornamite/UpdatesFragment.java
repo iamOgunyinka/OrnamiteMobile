@@ -113,7 +113,7 @@ public class UpdatesFragment extends Fragment
         overlay_view = root_view.findViewById( R.id.list_overlay );
         overlay_view.setVisibility( View.VISIBLE );
 
-        TextView empty_view = new TextView( getActivity() );
+        TextView empty_view = new TextView( this.getContext() );
         empty_view.setId( R.id.empty_text );
         empty_view.setText( R.string.no_updates );
         root_list_view.setEmptyView( empty_view );
@@ -154,7 +154,7 @@ public class UpdatesFragment extends Fragment
                 Utilities.AllUpdates.put( entry.getKey(), entry.getValue() );
             }
         }
-        root_list_view.setAdapter( new UpdatesFragmentAdapter( getActivity(), Utilities.AllUpdates ));
+        root_list_view.setAdapter( new UpdatesFragmentAdapter( this.getContext(), Utilities.AllUpdates ));
         overlay_view.setVisibility( View.INVISIBLE );
     }
 
@@ -344,9 +344,9 @@ public class UpdatesFragment extends Fragment
                 @Override
                 public void onClick( View view )
                 {
-                    ListView link_view = new ListView( getActivity() );
+                    ListView link_view = new ListView( context );
                     link_view.setId( R.id.download_link_list );
-                    link_view.setAdapter(new Utilities.DownloadLinksAdapter(getActivity(), episode_data.download_links));
+                    link_view.setAdapter(new Utilities.DownloadLinksAdapter( context, episode_data.download_links));
                     AlertDialog dialog = new AlertDialog.Builder( UpdatesFragment.this.getContext() )
                             .setPositiveButton( android.R.string.ok, null ).setTitle( "Download links" )
                             .setView( link_view ).create();

@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="@android:color/white"
-    xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <ExpandableListView
+        android:id="@+id/expandable_updates_listview"
         android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:layout_marginLeft="@dimen/activity_horizontal_margin"
-        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_gravity="start"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/expandable_updates_listview"
         android:divider="@android:color/darker_gray"
-        android:dividerHeight="1dp"
-        android:layout_gravity="center_horizontal" />
+        android:dividerHeight="2dp"/>
     <TableLayout
         android:id="@+id/list_overlay"
         android:layout_width="match_parent"

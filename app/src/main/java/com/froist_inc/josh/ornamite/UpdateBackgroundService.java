@@ -97,7 +97,7 @@ public class UpdateBackgroundService extends IntentService
                     Utilities.ReadTvSeriesData( context, NetworkManager.ALL_SERIES_FILENAME );
             final HashSet<String> subscribed = new HashSet<>();
             for ( HashMap.Entry<String, Utilities.TvSeriesData> entry_pair : all_tv_series.entrySet() ) {
-                if( entry_pair.getValue().IsSubscribed() ) subscribed.add( entry_pair.getKey().toLowerCase() );
+                if( entry_pair.getValue().IsSubscribed() ) subscribed.add( entry_pair.getKey() );
             }
             ArrayList<String> tv_series_for_today = new ArrayList<>();
             for( int i = 0; i != today_updates.length(); ++i ){
@@ -121,11 +121,12 @@ public class UpdateBackgroundService extends IntentService
                 new Intent( context, MainActivity.class ), 0 );
         StringBuilder text_builder = new StringBuilder();
         for( String series: today_series ){
-            text_builder.append( series ).append( "\n" );
+            text_builder.append( series ).append( ", " );
         }
+
         Notification notification = new NotificationCompat.Builder( context )
                 .setTicker( "New TV Series available" )
-                .setSmallIcon( android.R.drawable.ic_dialog_alert )
+                .setSmallIcon( R.drawable.tv_show )
                 .setContentTitle( "TV Series updates" )
                 .setContentText( text_builder.toString() )
                 .setContentIntent( pending_intent )

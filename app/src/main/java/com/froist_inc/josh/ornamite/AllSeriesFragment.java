@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -21,7 +22,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Filterable;
 import android.widget.ListView;
-import android.support.v7.widget.SearchView;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -156,7 +156,7 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
     private void OnFetchSuccessful()
     {
         refresh_menu.setEnabled( true );
-        SetAdapter();
+        SetAdapter( AllSeriesFragment.this.getContext() );
         setListShown( true );
     }
 
@@ -165,7 +165,7 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
     {
         final String show_name = (( AllSeriesAdapter )list_view.getAdapter()).getItem( position );
         final Utilities.TvSeriesData data = Utilities.AllSeries.get( show_name );
-        Intent intent = new Intent( getActivity(), ListSeasonsActivity.class );
+        Intent intent = new Intent( AllSeriesFragment.this.getContext(), ListSeasonsActivity.class );
         intent.putExtra( ListSeasonsActivity.SHOW_NAME, show_name );
         intent.putExtra( ListSeasonsActivity.SHOW_ID, data.GetSeriesID() );
         startActivity( intent );
@@ -219,14 +219,26 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
 
     private void ReadSourceFile()
     {
-        new ListSeriesAsyncTask().execute();
+        ListSeriesAsyncTask task = new ListSeriesAsyncTask( AllSeriesFragment.this.getContext(),
+                new ListSeriesAsyncTask.PostResultAction(){
+            @Override
+            public void OnErrorCallback() {
+                setListAdapter(null);
+            }
+            @Override
+            public void OnSuccessCallback( Context context, HashMap<String, Utilities.TvSeriesData> results ) {
+                Utilities.AllSeries = results;
+                SetAdapter( context );
+            }
+        });
+        task.execute();
     }
 
     private class AllSeriesAdapter extends ArrayAdapter<String> implements Filterable
     {
-        public AllSeriesAdapter( final ArrayList<String> data_list )
+        public AllSeriesAdapter( final Context context, final ArrayList<String> data_list )
         {
-            super( getActivity(), 0, data_list );
+            super( context, 0, data_list );
         }
 
         @Override
@@ -257,16 +269,29 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
         }
     }
 
-    private class ListSeriesAsyncTask extends AsyncTask<Void, Void, HashMap<String, Utilities.TvSeriesData>>
+    public static class ListSeriesAsyncTask extends AsyncTask<Void, Void, HashMap<String, Utilities.TvSeriesData>>
     {
-        String error_message;
+        private Context context;
+        private String error_message;
+        private PostResultAction callback_listener;
+
+        public interface PostResultAction
+        {
+            void OnErrorCallback();
+            void OnSuccessCallback( Context context, HashMap<String, Utilities.TvSeriesData> results);
+        }
+
+        public ListSeriesAsyncTask( final Context context, final PostResultAction listener ){
+            this.context = context;
+            this.callback_listener = listener;
+        }
+
         @Override
         protected HashMap<String, Utilities.TvSeriesData> doInBackground( Void... params )
         {
             try {
                 if( Utilities.AllSeries == null || Utilities.AllSeries.size() != 0 ) {
-                    return Utilities.ReadTvSeriesData( AllSeriesFragment.this.getContext(),
-                            NetworkManager.ALL_SERIES_FILENAME );
+                    return Utilities.ReadTvSeriesData( context, NetworkManager.ALL_SERIES_FILENAME );
                 }
                 return Utilities.AllSeries;
             } catch ( JSONException | IOException except ){
@@ -279,19 +304,19 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
         protected void onPostExecute( HashMap<String, Utilities.TvSeriesData> results )
         {
             if( results == null ){
-                AlertDialog error_dialog = new AlertDialog.Builder( AllSeriesFragment.this.getContext() )
-                        .setTitle( "Error" ).setMessage( error_message ).setPositiveButton( android.R.string.ok, null )
+                AlertDialog error_dialog = new AlertDialog.Builder( context )
+                        .setTitle( "Error" ).setMessage( error_message )
+                        .setPositiveButton( android.R.string.ok, null )
                         .create();
                 error_dialog.show();
-                setListAdapter( null );
-                return;
+                callback_listener.OnErrorCallback();
+            } else {
+                callback_listener.OnSuccessCallback( context, results );
             }
-            Utilities.AllSeries = results;
-            SetAdapter();
         }
     }
 
-    private void SetAdapter()
+    private void SetAdapter( final Context context )
     {
         if( keys == null ){
             keys = new ArrayList<>();
@@ -301,7 +326,7 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
             keys.add( ( String ) data_pair.getKey() );
         }
 
-        setListAdapter( new AllSeriesAdapter( keys ) );
+        setListAdapter( new AllSeriesAdapter( context, keys ) );
         (( AllSeriesAdapter ) getListAdapter() ).notifyDataSetChanged();
     }
 }
