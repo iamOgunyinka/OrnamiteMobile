@@ -19,6 +19,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -48,7 +49,7 @@ public class UpdateBackgroundService extends IntentService
             final HashMap<String, ArrayList<Utilities.EpisodeData>> tv_updates =
                     Utilities.ReadTvUpdates( context, NetworkManager.ALL_UPDATES_FILENAME );
             if( tv_updates == null ) return;
-            final String todays_date = UpdatesFragment.TodaysDate();
+            final String todays_date = Utilities.GetDateFromCalendar( GregorianCalendar.getInstance() );
             final ArrayList<Utilities.EpisodeData> updates_data = tv_updates.get( todays_date );
             if( updates_data == null || updates_data.isEmpty() ){
                 Log.v( TAG, "Fetching updates" );
@@ -64,7 +65,8 @@ public class UpdateBackgroundService extends IntentService
             throws JSONException, IOException
     {
         try {
-            final byte[] response = NetworkManager.GetNetwork().GetData( NetworkManager.UPDATES_URL );
+            final String url = NetworkManager.UPDATES_URL + "?date=" + Utilities.Today();
+            final byte[] response = NetworkManager.GetNetwork().GetData( url );
             JSONObject result = null;
             if( response != null ) {
                 result = new JSONObject( new String( response ));
@@ -126,7 +128,7 @@ public class UpdateBackgroundService extends IntentService
 
         Notification notification = new NotificationCompat.Builder( context )
                 .setTicker( "New TV Series available" )
-                .setSmallIcon( R.drawable.tv_show )
+                .setSmallIcon( R.drawable.logo )
                 .setContentTitle( "TV Series updates" )
                 .setContentText( text_builder.toString() )
                 .setContentIntent( pending_intent )

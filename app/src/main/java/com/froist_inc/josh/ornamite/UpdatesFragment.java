@@ -26,10 +26,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.Locale;
 
 
 public class UpdatesFragment extends Fragment
@@ -167,7 +165,8 @@ public class UpdatesFragment extends Fragment
             public void run()
             {
                 try {
-                    final byte[] response = NetworkManager.GetNetwork().GetData( NetworkManager.UPDATES_URL );
+                    final String url = NetworkManager.UPDATES_URL + "?date=" + Utilities.Today();
+                    final byte[] response = NetworkManager.GetNetwork().GetData( url );
                     JSONObject result = null;
                     if( response != null ) {
                         result = new JSONObject( new String( response ));
@@ -230,22 +229,12 @@ public class UpdatesFragment extends Fragment
                 }
             }
 
-            final String today = TodaysDate();
+            final String today = Utilities.GetDateFromCalendar( GregorianCalendar.getInstance() );
             today_data.put( today, tv_series_updates );
         } catch ( JSONException exception ){
             Log.v( "ParseUpdateResult", exception.getLocalizedMessage() );
         }
         return today_data;
-    }
-
-    public static String TodaysDate()
-    {
-        final Calendar calendar = GregorianCalendar.getInstance();
-        final int day = calendar.get( Calendar.DAY_OF_MONTH );
-        final int year = calendar.get( Calendar.YEAR );
-        final String day_of_week = calendar.getDisplayName( Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.US );
-        final String month_of_year = calendar.getDisplayName( Calendar.MONTH, Calendar.LONG, Locale.US );
-        return String.format( Locale.US, "%s, %s %d, %d", day_of_week, month_of_year, day, year );
     }
 
     private void OnFetchFailed( final String message )

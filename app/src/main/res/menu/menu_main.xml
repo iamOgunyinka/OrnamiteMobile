@@ -7,8 +7,14 @@
         app:showAsAction="collapseActionView|ifRoom"
         app:actionViewClass="android.support.v7.widget.SearchView"/>
     <item
+        android:icon="@android:drawable/ic_menu_rotate"
         android:id="@+id/action_refresh"
         android:orderInCategory="100"
         android:title="@string/refresh"
         android:showAsAction="never" />
+    <item
+        android:id="@+id/action_settings"
+        android:title="@string/settings"
+        android:showAsAction="never"
+        android:icon="@android:drawable/ic_menu_manage" />
 </menu>

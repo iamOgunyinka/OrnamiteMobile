@@ -24,7 +24,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class Utilities
 {
@@ -46,6 +49,24 @@ public class Utilities
                 return null;
             }
         }
+    }
+
+    public static String Today()
+    {
+        final Calendar calendar = GregorianCalendar.getInstance();
+        final int day = calendar.get( Calendar.DAY_OF_MONTH );
+        final int month = calendar.get( Calendar.MONTH );
+        final int year = calendar.get( Calendar.YEAR );
+        return String.format( Locale.US, "%d-%d-%d", year, month, day );
+    }
+
+    public static String GetDateFromCalendar( final Calendar calendar )
+    {
+        final int day = calendar.get( Calendar.DAY_OF_MONTH );
+        final int year = calendar.get( Calendar.YEAR );
+        final String day_of_week = calendar.getDisplayName( Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.US );
+        final String month_of_year = calendar.getDisplayName( Calendar.MONTH, Calendar.LONG, Locale.US );
+        return String.format( Locale.US, "%s, %s %d, %d", day_of_week, month_of_year, day, year );
     }
 
     public static class EpisodeData

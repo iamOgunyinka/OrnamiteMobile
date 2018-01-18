@@ -74,9 +74,19 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
             case R.id.action_refresh:
                 RefreshData();
                 return true;
+            case R.id.action_settings:
+                DisplaySettings();
+                return true;
             default:
                 return super.onOptionsItemSelected( item );
         }
+    }
+
+    private void DisplaySettings()
+    {
+        Intent settings_intent = new Intent( AllSeriesFragment.this.getContext(), SettingsActivity.class );
+        startActivity( settings_intent );
+        getActivity().overridePendingTransition( R.anim.push_left_in, R.anim.push_left_out );
     }
 
     @Override
