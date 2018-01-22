@@ -42,7 +42,7 @@ public class SettingsActivity extends AppCompatActivity
         cleanup_bar.setOnSeekBarChangeListener( new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged( SeekBar seekBar, int progress, boolean from_user ) {
-                updated_value = progress <= MIN_RANGE ? MIN_RANGE : progress;
+                updated_value = ( progress <= MIN_RANGE ) ? MIN_RANGE : progress;
                 cleanup_text.setText( getString( R.string.cleanup_text, updated_value ));
                 shared_preferences.edit().putInt( CLEANUP_INTERVAL, updated_value ).apply();
             }
@@ -80,16 +80,5 @@ public class SettingsActivity extends AppCompatActivity
         super.onBackPressed();
         this.finish();
         overridePendingTransition( R.anim.push_left_in, R.anim.push_left_out );
-    }
-
-    @Override
-    protected void onDestroy()
-    {
-        super.onDestroy();
-        if( initial_value != updated_value) {
-            // let's restart the service
-            UpdateCleanupService.UpdateCleanupAlarm( this, false ); // stop the service
-            UpdateCleanupService.UpdateCleanupAlarm( this, true ); // start the service
-        }
     }
 }

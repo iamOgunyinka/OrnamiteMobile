@@ -36,9 +36,9 @@ public class UpdateCleanupService extends IntentService
 
     private void CleanUpdateFile( final Context context )
     {
+        HashMap<String, ArrayList<Utilities.EpisodeData>> tv_updates = null;
         try {
-            final HashMap<String, ArrayList<Utilities.EpisodeData>> tv_updates =
-                    Utilities.ReadTvUpdates( context, NetworkManager.ALL_UPDATES_FILENAME );
+            tv_updates = Utilities.ReadTvUpdates( context, NetworkManager.ALL_UPDATES_FILENAME );
             if( tv_updates == null ) return;
             SharedPreferences shared_preferences = PreferenceManager.getDefaultSharedPreferences( context );
             int number_of_cleanup_days = shared_preferences.getInt( SettingsActivity.CLEANUP_INTERVAL,
@@ -54,14 +54,22 @@ public class UpdateCleanupService extends IntentService
             Utilities.WriteTvUpdateData( context, NetworkManager.ALL_UPDATES_FILENAME, pardoned_data );
         } catch ( JSONException | IOException except ){
             Log.v( TAG, except.getLocalizedMessage() );
+            if( tv_updates != null ){
+                try {
+                    Utilities.WriteTvUpdateData(context, NetworkManager.ALL_UPDATES_FILENAME, tv_updates);
+                } catch( JSONException | IOException exception ){
+                    Log.v( TAG, exception.getLocalizedMessage() );
+                }
+            }
         }
     }
 
     private ArrayList<String> GetLastDates( final int number_of_cleanup_days )
     {
-        ArrayList<String> dates = new ArrayList<>();
+        final ArrayList<String> dates = new ArrayList<>();
         final Calendar calendar = GregorianCalendar.getInstance();
-        for( int i = 0; i != number_of_cleanup_days; ++i ) {
+        dates.add( Utilities.GetDateFromCalendar( calendar ) ); // today
+        for( int i = 1; i != number_of_cleanup_days; ++i ) {
             calendar.add( Calendar.DATE, -1 );
             dates.add( Utilities.GetDateFromCalendar( calendar ) );
         }
