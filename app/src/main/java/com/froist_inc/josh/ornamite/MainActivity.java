@@ -1,5 +1,6 @@
 package com.froist_inc.josh.ornamite;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -11,7 +12,7 @@ import android.support.v7.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity
 {
-
+    private ViewPager view_pager;
     @Override
     protected void onCreate( Bundle saved_instance_bundle )
     {
@@ -25,16 +26,23 @@ public class MainActivity extends AppCompatActivity
         SectionsPagerAdapter sections_pager_adapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        ViewPager view_pager = (ViewPager) findViewById(R.id.container);
+        view_pager = (ViewPager) findViewById(R.id.container);
         assert view_pager != null;
         view_pager.setAdapter( sections_pager_adapter );
-        if( getIntent().getStringExtra( UpdateBackgroundService.UPDATE_FRAGMENT ) != null ){
-            view_pager.setCurrentItem( 1, true );
-        }
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         assert tabLayout != null;
         tabLayout.setupWithViewPager( view_pager );
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent starting_intent = getIntent();
+        if( starting_intent != null && starting_intent.getStringExtra( UpdateBackgroundService.UPDATE_FRAGMENT ) != null)
+        {
+            view_pager.setCurrentItem( 1, true );
+        }
     }
 
     /**

@@ -164,8 +164,10 @@ public class UpdatesFragment extends Fragment
             index += 1;
         }
         root_list_view.setAdapter( new UpdatesFragmentAdapter( this.getContext(), Utilities.AllUpdates, headers ));
-        root_list_view.smoothScrollToPosition( position );
-        root_list_view.expandGroup( position );
+        if( Utilities.AllUpdates != null && Utilities.AllUpdates.size() > 0 ) {
+            root_list_view.smoothScrollToPosition( position );
+            root_list_view.expandGroup( position );
+        }
         overlay_view.setVisibility( View.INVISIBLE );
     }
 
