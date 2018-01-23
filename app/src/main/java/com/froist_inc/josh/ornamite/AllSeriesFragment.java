@@ -97,7 +97,7 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
 
     @Override
     public boolean onQueryTextChange( final String new_text ){
-        ((AllSeriesAdapter ) getListAdapter()).getFilter().filter( new_text );
+        ((AllSeriesAdapter ) getListAdapter() ).getFilter().filter( new_text );
 
         if( TextUtils.isEmpty( new_text ) ){
             getListView().clearTextFilter();
@@ -111,6 +111,7 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
     {
         refresh_menu.setEnabled( false );
         setListShown( false );
+
         Thread new_thread = new Thread( new Runnable() {
             @Override
             public void run()
@@ -233,7 +234,7 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
                 new ListSeriesAsyncTask.PostResultAction(){
             @Override
             public void OnErrorCallback() {
-                setListAdapter(null);
+                setListAdapter( null );
             }
             @Override
             public void OnSuccessCallback( Context context, HashMap<String, Utilities.TvSeriesData> results ) {
@@ -259,8 +260,8 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
             }
             final Utilities.TvSeriesData item = Utilities.AllSeries.get( getItem( position ));
             final TextView series_name_text = (TextView) convert_view.findViewById( R.id.tv_series_name_text );
-            final TextView subcription_status_text = (TextView) convert_view.findViewById(R.id.subscription_status_text );
-            final Button  sub_unsub_button = (Button) convert_view.findViewById(R.id.subscribe_unsubscribe_button);
+            final TextView subcription_status_text = (TextView) convert_view.findViewById( R.id.subscription_status_text );
+            final Button  sub_unsub_button = (Button) convert_view.findViewById( R.id.subscribe_unsubscribe_button );
 
             series_name_text.setText( item.GetSeriesName() );
             subcription_status_text.setText( item.IsSubscribed() ? R.string.subscribed : R.string.unsubscribed );

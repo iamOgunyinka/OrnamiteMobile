@@ -27,6 +27,8 @@ public class UpdateBackgroundService extends IntentService
 {
     public static final String AUTO_CHECK_UPDATE_IS_ON = "IsServiceAlarmOn";
     private static final String TAG = "UpdateBackgroundService";
+    public static final String UPDATE_FRAGMENT = "UPDATE_FRAGMENT";
+
     private static final int AN_HOUR_INTERVAL = 1000 * 60 * 60;
     public UpdateBackgroundService()
     {
@@ -119,8 +121,10 @@ public class UpdateBackgroundService extends IntentService
 
     private static void NotifyUser( final Context context, final ArrayList<String> today_series )
     {
-        PendingIntent pending_intent = PendingIntent.getActivity( context, 1,
-                new Intent( context, MainActivity.class ), 0 );
+        Intent starting_intent = new Intent( context, MainActivity.class );
+        starting_intent.putExtra( UPDATE_FRAGMENT, Utilities.GetDateFromCalendar( GregorianCalendar.getInstance() ) );
+
+        PendingIntent pending_intent = PendingIntent.getActivity( context, 1, starting_intent, 0 );
         StringBuilder text_builder = new StringBuilder();
         for( String series: today_series ){
             text_builder.append( series ).append( ", " );

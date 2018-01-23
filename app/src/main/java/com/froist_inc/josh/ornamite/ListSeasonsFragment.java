@@ -56,35 +56,37 @@ public class ListSeasonsFragment extends ListFragment
     {
         super.onResume();
         final String saved_instance_data = getActivity().getIntent().getStringExtra( "SavedInstance" );
-
-        if( saved_instance_data == null ) {
+        if( saved_instance_data == null ){
             GetShowSeasons();
         } else {
-            try {
-                JSONObject root_item = new JSONObject( saved_instance_data );
-                show_id = root_item.getLong( "show_id" );
-                show_name = root_item.getString( "show_name" );
-                if( root_item.has( "items" ) ){
-                    JSONArray items = root_item.getJSONArray( "items" );
-                    seasons_list = new ArrayList<>();
-                    for( int i = 0; i != items.length(); ++i ){
-                        JSONObject item = items.getJSONObject( i );
-                        seasons_list.add( new SeasonData( item.getString( "name" ), item.getLong( "id" )) );
-                    }
-                }
-                setListAdapter( new SeasonsAdapter( ListSeasonsFragment.this.getContext(), seasons_list.isEmpty() ?
-                        null : seasons_list ) );
-            } catch ( JSONException exception ){
-                Toast.makeText( getActivity(), "Unable to restore old state", Toast.LENGTH_LONG ).show();
-                getActivity().onBackPressed();
-            }
+            ReadSavedState( saved_instance_data );
         }
     }
 
-    @Override
-    public void onPause()
+    private void ReadSavedState( final String saved_instance_data )
     {
-        super.onPause();
+        try {
+            JSONObject root_item = new JSONObject( saved_instance_data );
+            show_id = root_item.getLong( "show_id" );
+            show_name = root_item.getString( "show_name" );
+            if( root_item.has( "items" ) ){
+                JSONArray items = root_item.getJSONArray( "items" );
+                seasons_list = new ArrayList<>();
+                for( int i = 0; i != items.length(); ++i ){
+                    JSONObject item = items.getJSONObject( i );
+                    seasons_list.add( new SeasonData( item.getString( "name" ), item.getLong( "id" )) );
+                }
+            }
+            setListAdapter( new SeasonsAdapter( ListSeasonsFragment.this.getContext(), seasons_list.isEmpty() ?
+                    null : seasons_list ) );
+        } catch ( JSONException exception ){
+            Toast.makeText( getActivity(), "Unable to restore old state", Toast.LENGTH_LONG ).show();
+            getActivity().onBackPressed();
+        }
+    }
+
+    private void SaveStateToStorage()
+    {
         JSONObject persistent_data = new JSONObject();
         try {
             persistent_data.put( "show_name", show_name );
@@ -103,6 +105,13 @@ public class ListSeasonsFragment extends ListFragment
             Log.v( "SavedInstance", exception.getLocalizedMessage() );
         }
         getActivity().getIntent().putExtra( "SavedInstance", persistent_data.toString() );
+    }
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        SaveStateToStorage();
     }
 
     @Override

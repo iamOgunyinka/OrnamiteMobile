@@ -145,14 +145,27 @@ public class UpdatesFragment extends Fragment
 
     void SetAdapter( final HashMap<String, ArrayList<Utilities.EpisodeData>> data_map )
     {
+        int position = 0, index = 0;
+        final String today = Utilities.GetDateFromCalendar( GregorianCalendar.getInstance() );
+        ArrayList<String> headers = new ArrayList<>();
+
         if ( Utilities.AllUpdates == null ) {
             Utilities.AllUpdates = data_map;
         } else {
+            // usually a single shot
             for ( HashMap.Entry<String, ArrayList<Utilities.EpisodeData>> entry : data_map.entrySet() ) {
                 Utilities.AllUpdates.put( entry.getKey(), entry.getValue() );
             }
         }
-        root_list_view.setAdapter( new UpdatesFragmentAdapter( this.getContext(), Utilities.AllUpdates ));
+        for ( HashMap.Entry<String, ArrayList<Utilities.EpisodeData>> entry : Utilities.AllUpdates.entrySet() ) {
+            final String key = entry.getKey();
+            headers.add( key );
+            if( key.equals( today ) ) position = index;
+            index += 1;
+        }
+        root_list_view.setAdapter( new UpdatesFragmentAdapter( this.getContext(), Utilities.AllUpdates, headers ));
+        root_list_view.smoothScrollToPosition( position );
+        root_list_view.expandGroup( position );
         overlay_view.setVisibility( View.INVISIBLE );
     }
 
@@ -259,14 +272,12 @@ public class UpdatesFragment extends Fragment
         private final HashMap<String, ArrayList<Utilities.EpisodeData>> data_map;
         private Context context;
 
-        UpdatesFragmentAdapter( final Context context, HashMap<String, ArrayList<Utilities.EpisodeData>> data_map )
+        UpdatesFragmentAdapter( final Context context, HashMap<String, ArrayList<Utilities.EpisodeData>> data_map,
+                                final ArrayList<String> headers )
         {
             this.context = context;
             this.data_map = data_map;
-            header_lists = new ArrayList<>();
-            for( HashMap.Entry data_entry: data_map.entrySet() ){
-                header_lists.add( ( String )data_entry.getKey() );
-            }
+            header_lists = headers;
         }
 
         @Override

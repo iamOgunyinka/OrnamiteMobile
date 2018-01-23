@@ -27,6 +27,9 @@ import java.util.ArrayList;
 
 public class ListEpisodesFragment extends ListFragment
 {
+    private static final String TAG = "ListEpisodeFrag";
+    private static final String EPISODE_DATA = "EPISODIAL_DATA";
+
     private MenuItem refresh_menu;
     private long season_id;
     private Handler main_ui_handler;
@@ -41,12 +44,73 @@ public class ListEpisodesFragment extends ListFragment
     }
 
     @Override
+    public void onPause()
+    {
+        super.onPause();
+        final EpisodeAdapter adapter = ( EpisodeAdapter ) getListAdapter();
+        final int episode_count = adapter.getCount();
+        final JSONArray list_of_episodes = new JSONArray();
+        try {
+            for (int i = 0; i != episode_count; ++i) {
+                final Utilities.EpisodeData episode = adapter.getItem( i );
+                final JSONArray download_links = new JSONArray();
+                for ( int j = 0; j != episode.download_links.size(); ++j ) {
+                    final Utilities.DownloadsData download_item = episode.download_links.get( j );
+                    final JSONObject download_object = new JSONObject();
+                    download_object.put( "link", download_item.download_link );
+                    download_object.put( "type", download_item.download_type );
+                    download_links.put( download_object );
+                }
+                final JSONObject episode_data = new JSONObject();
+                episode_data.put( "name", episode.episode_name );
+                episode_data.put( "links", download_links );
+                list_of_episodes.put( episode_data );
+            }
+        } catch ( JSONException exception ){
+            Log.v( TAG, exception.getLocalizedMessage() );
+        }
+        getActivity().getIntent().putExtra( EPISODE_DATA, list_of_episodes.toString() );
+    }
+
+    @Override
     public void onResume()
     {
         super.onResume();
         setEmptyText( "No episodes listed yet" );
         if( main_ui_handler == null ) main_ui_handler = new Handler( getActivity().getMainLooper() );
-        FetchData();
+
+        final String saved_instance_data = getActivity().getIntent().getStringExtra( EPISODE_DATA );
+        if( saved_instance_data == null ){
+            FetchData();
+        } else {
+            try {
+                ReadSavedState(saved_instance_data);
+            } catch ( JSONException exception ){
+                Log.v( TAG, exception.getLocalizedMessage() );
+                FetchData();
+            }
+        }
+    }
+
+    private void ReadSavedState( final String saved_instance_state ) throws JSONException
+    {
+        final JSONArray list_of_episodes = new JSONArray( saved_instance_state );
+        final ArrayList<Utilities.EpisodeData> episodes = new ArrayList<>();
+
+        for( int i = 0; i != list_of_episodes.length(); ++i ){
+            final JSONObject episode = list_of_episodes.getJSONObject( i );
+            final String episode_name = episode.getString( "name" );
+            final JSONArray download_links = episode.getJSONArray( "links" );
+            final Utilities.EpisodeData episode_data = new Utilities.EpisodeData( episode_name );
+            for( int j = 0; j != download_links.length(); ++j ){
+                final JSONObject links = download_links.getJSONObject( j );
+                final String download_type = links.getString( "type" );
+                final String download_link = links.getString( "link" );
+                episode_data.AddDownloadsData( new Utilities.DownloadsData( download_type, download_link ));
+            }
+            episodes.add( episode_data );
+        }
+        setListAdapter( new EpisodeAdapter( ListEpisodesFragment.this.getContext(), episodes ));
     }
 
     @Override
@@ -93,7 +157,7 @@ public class ListEpisodesFragment extends ListFragment
                             "Could not get any data from the server";
                     if( result != null && ( result.getInt( "status" ) == Utilities.Success )){
                         final JSONArray details = result.getJSONArray( "detail" );
-                        final ArrayList<Utilities.EpisodeData> episode_list = ParseResultAndDisplay( details );
+                        final ArrayList<Utilities.EpisodeData> episode_list = ParseNetworkResult( details );
                         main_ui_handler.post( new Runnable() {
                             @Override
                             public void run()
@@ -122,14 +186,14 @@ public class ListEpisodesFragment extends ListFragment
         new_thread.start();
     }
 
-    private ArrayList<Utilities.EpisodeData> ParseResultAndDisplay(final JSONArray details )
+    private ArrayList<Utilities.EpisodeData> ParseNetworkResult( final JSONArray details )
     {
         ArrayList<Utilities.EpisodeData> data_list = new ArrayList<>();
         try {
             for ( int i = 0; i != details.length(); ++i ) {
                 final JSONObject episode_object = details.getJSONObject( i );
-                final Utilities.EpisodeData episode = new Utilities.EpisodeData( episode_object.getString("name"));
-                JSONArray episode_links = episode_object.getJSONArray( "links");
+                final Utilities.EpisodeData episode = new Utilities.EpisodeData( episode_object.getString( "name" ));
+                JSONArray episode_links = episode_object.getJSONArray( "links" );
                 for ( int j = 0; j != episode_links.length(); ++j ) {
                     final JSONObject link_object = episode_links.getJSONObject( j );
                     final String download_type = link_object.getString( "type" );

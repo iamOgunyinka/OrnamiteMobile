@@ -27,11 +27,14 @@ public class MainActivity extends AppCompatActivity
         // Set up the ViewPager with the sections adapter.
         ViewPager view_pager = (ViewPager) findViewById(R.id.container);
         assert view_pager != null;
-        view_pager.setAdapter(sections_pager_adapter);
+        view_pager.setAdapter( sections_pager_adapter );
+        if( getIntent().getStringExtra( UpdateBackgroundService.UPDATE_FRAGMENT ) != null ){
+            view_pager.setCurrentItem( 1, true );
+        }
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         assert tabLayout != null;
-        tabLayout.setupWithViewPager(view_pager);
+        tabLayout.setupWithViewPager( view_pager );
     }
 
     /**
@@ -40,8 +43,9 @@ public class MainActivity extends AppCompatActivity
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter
     {
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
+        public SectionsPagerAdapter( final FragmentManager fm )
+        {
+            super( fm );
         }
 
         @Override
