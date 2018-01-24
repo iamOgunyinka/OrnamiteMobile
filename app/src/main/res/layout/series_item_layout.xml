@@ -4,13 +4,11 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:layout_marginTop="10dp"
-    android:layout_marginBottom="10dp"
-    android:padding="5dp">
+    android:layout_marginBottom="20dp"
+    android:padding="10dp">
     <ImageView
         android:layout_width="@dimen/tvseries_list_width"
         android:layout_height="@dimen/tvseries_list_height"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
         android:src="@drawable/tv_show"
         android:layout_gravity="center"
         android:focusable="false"
@@ -48,8 +46,6 @@
     </LinearLayout>
     <android.support.v7.widget.AppCompatButton
         android:focusable="false"
-        android:layout_marginRight="10dp"
-        android:layout_marginEnd="10dp"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:id="@+id/subscribe_unsubscribe_button"
