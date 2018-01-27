@@ -17,4 +17,5 @@
     <string name="cleanup_text">Cleanup updates after %1$d days.</string>
     <string name="empty_series_text">Nothing found, refresh to fetch more</string>
     <string name="index_activity_loading">please wait</string>
+    <string name="series_count">%1$d series in total.</string>
 </resources>

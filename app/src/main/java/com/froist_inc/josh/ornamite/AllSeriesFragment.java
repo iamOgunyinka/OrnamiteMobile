@@ -13,6 +13,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Filterable;
+import android.widget.HeaderViewListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -174,13 +176,15 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
     @Override
     public void onListItemClick( ListView list_view, View v, int position, long id )
     {
-        final String show_name = (( AllSeriesAdapter )list_view.getAdapter()).getItem( position );
+        final HeaderViewListAdapter header_adapter = ( HeaderViewListAdapter ) list_view.getAdapter();
+        final AllSeriesAdapter list_adapter = ( AllSeriesAdapter ) header_adapter.getWrappedAdapter();
+        final String show_name = list_adapter.getItem( position );
         final Utilities.TvSeriesData data = Utilities.AllSeries.get( show_name );
         Intent intent = new Intent( AllSeriesFragment.this.getContext(), ListSeasonsActivity.class );
         intent.putExtra( ListSeasonsActivity.SHOW_NAME, show_name );
         intent.putExtra( ListSeasonsActivity.SHOW_ID, data.GetSeriesID() );
         startActivity( intent );
-        getActivity().overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out );
+        getActivity().overridePendingTransition( R.anim.push_left_in, R.anim.push_left_out );
     }
 
     private void ParseResultAndDisplay( final JSONArray details )
@@ -336,6 +340,12 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
         for( HashMap.Entry data_pair : Utilities.AllSeries.entrySet() ) {
             keys.add( ( String ) data_pair.getKey() );
         }
+
+        LayoutInflater inflater = ( LayoutInflater ) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        View footer_view = inflater.inflate( R.layout.list_view_footer, null, false );
+        TextView series_count_text = (TextView) footer_view.findViewById( R.id.series_count_text );
+        series_count_text.setText( getString( R.string.series_count, keys.size() ));
+        getListView().addFooterView( footer_view );
 
         setListAdapter( new AllSeriesAdapter( context, keys ) );
         (( AllSeriesAdapter ) getListAdapter() ).notifyDataSetChanged();

@@ -163,12 +163,22 @@ public class UpdatesFragment extends Fragment
             if( key.equals( today ) ) position = index;
             index += 1;
         }
+
+        AddFooter();
+
         root_list_view.setAdapter( new UpdatesFragmentAdapter( this.getContext(), Utilities.AllUpdates, headers ));
         if( Utilities.AllUpdates != null && Utilities.AllUpdates.size() > 0 ) {
             root_list_view.smoothScrollToPosition( position );
             root_list_view.expandGroup( position );
         }
         overlay_view.setVisibility( View.INVISIBLE );
+    }
+
+    private void AddFooter()
+    {
+        LayoutInflater inflater = ( LayoutInflater ) getActivity().getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        View footer_view = inflater.inflate( R.layout.list_view_footer, null, false );
+        root_list_view.addFooterView( footer_view );
     }
 
     void RefreshTodaysUpdate()

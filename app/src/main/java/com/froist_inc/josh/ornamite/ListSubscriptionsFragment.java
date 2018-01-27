@@ -21,6 +21,8 @@ import java.util.HashMap;
 
 public class ListSubscriptionsFragment extends ListFragment
 {
+    private TextView series_count_text;
+
     @Override
     public void onCreate( @Nullable Bundle saved_instance_state )
     {
@@ -76,6 +78,13 @@ public class ListSubscriptionsFragment extends ListFragment
             final Utilities.TvSeriesData value = data_entry.getValue();
             if (value.IsSubscribed()) subscribed.add( data_entry.getKey() );
         }
+
+        LayoutInflater inflater = ( LayoutInflater ) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        View footer_view = inflater.inflate( R.layout.list_view_footer, null, false );
+        series_count_text = (TextView) footer_view.findViewById( R.id.series_count_text );
+        series_count_text.setText( getString( R.string.series_count, subscribed.size() ));
+
+        getListView().addFooterView( footer_view );
         setListAdapter( new SubscriptionsAdapter( context, subscribed ) );
     }
 
@@ -108,6 +117,7 @@ public class ListSubscriptionsFragment extends ListFragment
                     data_item.SetIsSubscribed( !data_item.IsSubscribed() );
                     SubscriptionsAdapter.this.remove( data_item.GetSeriesName() );
                     SubscriptionsAdapter.this.notifyDataSetChanged();
+                    series_count_text.setText( getString( R.string.series_count, getCount() ));
                 }
             });
 
