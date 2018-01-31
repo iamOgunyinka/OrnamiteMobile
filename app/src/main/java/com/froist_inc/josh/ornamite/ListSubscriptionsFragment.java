@@ -1,8 +1,6 @@
 package com.froist_inc.josh.ornamite;
 
 import android.content.Context;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,17 +22,11 @@ public class ListSubscriptionsFragment extends ListFragment
     private TextView series_count_text;
 
     @Override
-    public void onCreate( @Nullable Bundle saved_instance_state )
-    {
-        super.onCreate( saved_instance_state );
-    }
-
-    @Override
     public void onPause()
     {
         super.onPause();
         try {
-            Utilities.WriteTvSeriesData( getActivity(), NetworkManager.ALL_SERIES_FILENAME, Utilities.AllSeries );
+            Utilities.WriteTvSeriesData( getActivity(), Utilities.AllSeries );
         } catch ( JSONException | IOException except ){
             Log.v( "ListSubscriptionFrag", except.getLocalizedMessage() );
         }
@@ -90,7 +82,7 @@ public class ListSubscriptionsFragment extends ListFragment
 
     private class SubscriptionsAdapter extends ArrayAdapter<String>
     {
-        private Context context;
+        private final Context context;
 
         public SubscriptionsAdapter( Context context, ArrayList<String> data_list )
         {

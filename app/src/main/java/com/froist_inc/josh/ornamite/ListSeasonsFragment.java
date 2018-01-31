@@ -7,14 +7,15 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.ListFragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -27,16 +28,21 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class ListSeasonsFragment extends ListFragment
+public class ListSeasonsFragment extends Fragment
 {
-    public static final int REQUEST_CODE = 0;
+    private static final int REQUEST_CODE = 0;
 
     private long   show_id;
     private String show_name;
+    private String show_description;
     private Handler main_ui_handler;
 
     private MenuItem refresh_menu;
     private ArrayList<SeasonData> seasons_list;
+    private ListView  list_view;
+    private View      loading_view;
+    private View      empty_view;
+    private TextView  description_text;
 
     @Override
     public void onCreate( @Nullable Bundle saved_instance_state )
@@ -51,6 +57,21 @@ public class ListSeasonsFragment extends ListFragment
         getActivity().setTitle( show_name );
     }
 
+    @Nullable @Override
+    public View onCreateView( LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle saved_instance_state )
+    {
+        final View root_view = inflater.inflate( R.layout.seasons_fragment_layout, container, false );
+        list_view = ( ListView ) root_view.findViewById(R.id.seasons_list_view );
+        loading_view = root_view.findViewById( R.id.seasons_loading_view );
+        description_text = ( TextView ) root_view.findViewById( R.id.series_description_text );
+
+        empty_view = root_view.findViewById( R.id.seasons_empty_view );
+        list_view.setEmptyView( empty_view );
+
+        return root_view;
+    }
+
     @Override
     public void onResume()
     {
@@ -61,6 +82,19 @@ public class ListSeasonsFragment extends ListFragment
         } else {
             ReadSavedState( saved_instance_data );
         }
+
+        list_view.setOnItemClickListener( new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick( AdapterView<?> parent, View view, int position, long id ) {
+                SeasonData data = (( SeasonsAdapter ) list_view.getAdapter() ).getItem( position );
+                Intent intent = new Intent( getActivity(), ListEpisodesActivity.class );
+
+                intent.putExtra( ListEpisodesActivity.SEASON_NAME, show_name + " - " + data.season_name );
+                intent.putExtra( ListEpisodesActivity.SEASON_ID, data.season_id );
+                startActivityForResult( intent, ListSeasonsFragment.REQUEST_CODE );
+                getActivity().overridePendingTransition( R.anim.push_left_in, R.anim.push_left_out );
+            }
+        });
     }
 
     private void ReadSavedState( final String saved_instance_data )
@@ -69,6 +103,7 @@ public class ListSeasonsFragment extends ListFragment
             JSONObject root_item = new JSONObject( saved_instance_data );
             show_id = root_item.getLong( "show_id" );
             show_name = root_item.getString( "show_name" );
+            show_description = root_item.getString( "desc" );
             if( root_item.has( "items" ) ){
                 JSONArray items = root_item.getJSONArray( "items" );
                 seasons_list = new ArrayList<>();
@@ -77,7 +112,8 @@ public class ListSeasonsFragment extends ListFragment
                     seasons_list.add( new SeasonData( item.getString( "name" ), item.getLong( "id" )) );
                 }
             }
-            setListAdapter( new SeasonsAdapter( ListSeasonsFragment.this.getContext(), seasons_list.isEmpty() ?
+            description_text.setText( show_description );
+            list_view.setAdapter( new SeasonsAdapter( ListSeasonsFragment.this.getContext(), seasons_list.isEmpty() ?
                     null : seasons_list ) );
         } catch ( JSONException exception ){
             Toast.makeText( getActivity(), "Unable to restore old state", Toast.LENGTH_LONG ).show();
@@ -91,9 +127,11 @@ public class ListSeasonsFragment extends ListFragment
         try {
             persistent_data.put( "show_name", show_name );
             persistent_data.put( "show_id", show_id );
+            persistent_data.put( "desc", show_description );
+            
             if ( seasons_list != null && !seasons_list.isEmpty() ) {
                 JSONArray items = new JSONArray();
-                for (int i = 0; i != seasons_list.size(); ++i) {
+                for ( int i = 0; i != seasons_list.size(); ++i ) {
                     JSONObject item = new JSONObject();
                     item.put( "id", seasons_list.get( i ).season_id );
                     item.put( "name", seasons_list.get(i).season_name );
@@ -142,7 +180,7 @@ public class ListSeasonsFragment extends ListFragment
         if( refresh_menu != null ){
             refresh_menu.setEnabled( false );
         }
-        setListShown( false );
+        loading_view.setVisibility( View.VISIBLE );
         Thread new_thread = new Thread( new Runnable() {
             @Override
             public void run()
@@ -157,33 +195,42 @@ public class ListSeasonsFragment extends ListFragment
                     final String message = result != null ? result.getString( "detail" ) :
                             "Could not get any data from the server";
                     if( result != null && ( result.getInt( "status" ) == Utilities.Success )){
-                        JSONArray details = result.getJSONArray( "detail" );
+                        JSONObject details = result.getJSONObject( "detail" );
                         seasons_list = ParseResultAndDisplay( details );
-                        main_ui_handler.post( new Runnable() {
-                            @Override
-                            public void run()
-                            {
-                                setListAdapter( new SeasonsAdapter( ListSeasonsFragment.this.getContext(),
-                                        seasons_list.isEmpty() ? null : seasons_list ) );
-                                setListShown( true );
-                                if( refresh_menu != null ) refresh_menu.setEnabled( true );
-                            }
-                        });
+
+                        if( main_ui_handler != null && main_ui_handler.getLooper() != null ) {
+                            main_ui_handler.post( new Runnable() {
+                                @Override
+                                public void run() {
+                                    final Context context = ListSeasonsFragment.this.getContext();
+                                    if( context == null ) return;
+                                    list_view.setAdapter( new SeasonsAdapter( context,
+                                            seasons_list.isEmpty() ? null : seasons_list));
+                                    description_text.setText( show_description );
+                                    loading_view.setVisibility( View.INVISIBLE );
+                                    if ( refresh_menu != null ) refresh_menu.setEnabled( true );
+                                }
+                            });
+                        }
                     } else {
+                        if( main_ui_handler != null && main_ui_handler.getLooper() != null ) {
+                            main_ui_handler.post( new Runnable() {
+                                @Override
+                                public void run() {
+                                    OnFetchFailed( message );
+                                }
+                            });
+                        }
+                    }
+                } catch ( JSONException | IOException exception ){
+                    if( main_ui_handler != null && main_ui_handler.getLooper() != null ) {
                         main_ui_handler.post( new Runnable() {
                             @Override
                             public void run() {
-                                OnFetchFailed( message );
+                                OnFetchFailed( exception.getMessage() );
                             }
                         });
                     }
-                } catch ( JSONException | IOException exception ){
-                    main_ui_handler.post( new Runnable() {
-                        @Override
-                        public void run() {
-                            OnFetchFailed( exception.getMessage() );
-                        }
-                    });
                 }
             }
         });
@@ -193,20 +240,22 @@ public class ListSeasonsFragment extends ListFragment
     private void OnFetchFailed( final String message )
     {
         if( refresh_menu != null ) refresh_menu.setEnabled( true );
-        setListShown( true );
-        setEmptyText( "Nothing found" );
+        loading_view.setVisibility( View.INVISIBLE );
+        list_view.setEmptyView( empty_view );
         AlertDialog dialog = new AlertDialog.Builder( ListSeasonsFragment.this.getContext() ).setTitle( "Error" )
                 .setMessage( message ).setPositiveButton( android.R.string.ok, null ).create();
         dialog.show();
     }
 
-    private ArrayList<SeasonData> ParseResultAndDisplay( final JSONArray data_list )
+    private ArrayList<SeasonData> ParseResultAndDisplay( final JSONObject data_object )
     {
         ArrayList<SeasonData> season_list = new ArrayList<>();
         try {
-            for (int i = 0; i != data_list.length(); ++i) {
+            show_description = data_object.optString( "desc" );
+            JSONArray data_list = data_object.getJSONArray( "seasons" );
+            for ( int i = 0; i != data_list.length(); ++i ) {
                 JSONObject data_item = data_list.getJSONObject( i );
-                season_list.add( new SeasonData(data_item.getString("name"), data_item.getLong( "id" ) ) );
+                season_list.add( new SeasonData( data_item.getString( "name" ), data_item.getLong( "id" ) ) );
             }
         } catch ( JSONException except ){
             Log.v( "ParseResult", except.getLocalizedMessage() );
@@ -216,8 +265,8 @@ public class ListSeasonsFragment extends ListFragment
 
     class SeasonData
     {
-        public String season_name;
-        public Long   season_id;
+        public final String season_name;
+        public final Long   season_id;
         public SeasonData( final String season_name, final long season_id ){
             this.season_name = season_name;
             this.season_id = season_id;
@@ -243,10 +292,11 @@ public class ListSeasonsFragment extends ListFragment
         }
     }
 
+    /*
     @Override
     public void onListItemClick( ListView l, View view, int position, long id )
     {
-        SeasonData data = (( SeasonsAdapter ) getListAdapter() ).getItem( position );
+        SeasonData data = (( SeasonsAdapter ) list_view.getAdapter() ).getItem( position );
         Intent intent = new Intent( getActivity(), ListEpisodesActivity.class );
 
         intent.putExtra( ListEpisodesActivity.SEASON_NAME, show_name + " - " + data.season_name );
@@ -254,7 +304,7 @@ public class ListSeasonsFragment extends ListFragment
         startActivityForResult( intent, ListSeasonsFragment.REQUEST_CODE );
         getActivity().overridePendingTransition( R.anim.push_left_in, R.anim.push_left_out );
     }
-
+    */
 
     public static Fragment GetFragmentInstance(final String show_name, final long show_id )
     {

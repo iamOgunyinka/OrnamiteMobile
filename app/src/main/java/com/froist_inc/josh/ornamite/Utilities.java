@@ -29,10 +29,10 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
 
-public class Utilities
+class Utilities
 {
     public static HashMap<String, TvSeriesData> AllSeries;
-    public static int Success = 1;
+    public static final int Success = 1;
     public static HashMap<String, ArrayList<EpisodeData>> AllUpdates;
 
     public static class JsonParser
@@ -71,8 +71,8 @@ public class Utilities
 
     public static class EpisodeData
     {
-        public String episode_name;
-        public ArrayList<DownloadsData> download_links;
+        public final String episode_name;
+        public final ArrayList<DownloadsData> download_links;
 
         public EpisodeData( final String episode_name )
         {
@@ -103,8 +103,8 @@ public class Utilities
 
     public static class DownloadsData
     {
-        public String download_type;
-        public String download_link;
+        public final String download_type;
+        public final String download_link;
 
         public DownloadsData( final String download_type, final String download_link )
         {
@@ -150,8 +150,8 @@ public class Utilities
 
     public static class TvSeriesData
     {
-        public String series_name;
-        private Long   series_id;
+        public final String series_name;
+        private final Long   series_id;
         private boolean is_subscribed;
 
         public TvSeriesData( final String title, final long id, final boolean subscribed )
@@ -186,7 +186,7 @@ public class Utilities
         }
     }
 
-    public static String ReadDataFile( final Context context, final String filename ) throws IOException
+    private static String ReadDataFile(final Context context, final String filename) throws IOException
     {
         BufferedReader reader = null;
         try {
@@ -203,15 +203,14 @@ public class Utilities
         }
     }
 
-    public static HashMap<String, TvSeriesData> ReadTvSeriesData( final Context context, final String filename )
-            throws IOException, JSONException
+    public static HashMap<String, TvSeriesData> ReadTvSeriesData( final Context context ) throws IOException, JSONException
     {
         HashMap<String, TvSeriesData> data = new HashMap<>();
         String data_string;
         try {
-            data_string = ReadDataFile( context, filename );
+            data_string = ReadDataFile( context, NetworkManager.ALL_SERIES_FILENAME);
         } catch (IOException except ){
-            FileOutputStream output_stream = context.openFileOutput( filename, Context.MODE_PRIVATE );
+            FileOutputStream output_stream = context.openFileOutput(NetworkManager.ALL_SERIES_FILENAME, Context.MODE_PRIVATE );
             Writer writer = new OutputStreamWriter( output_stream );
             data_string = "[]";
             writer.write( data_string );
@@ -229,9 +228,7 @@ public class Utilities
         return data;
     }
 
-    public static void WriteTvSeriesData( final Context context,
-                                          final String filename,
-                                          final HashMap<String, TvSeriesData> data_map )
+    public static void WriteTvSeriesData( final Context context, final HashMap<String, TvSeriesData> data_map )
             throws JSONException, IOException
     {
         if( data_map.size() == 0 ) return;
@@ -240,7 +237,7 @@ public class Utilities
             final TvSeriesData data_item = ( TvSeriesData ) pair.getValue();
             list_of_tv_series.put( data_item.ToJson() );
         }
-        WriteDataToDisk( context, filename, list_of_tv_series.toString() );
+        WriteDataToDisk( context, NetworkManager.ALL_SERIES_FILENAME, list_of_tv_series.toString() );
     }
 
     private static void WriteDataToDisk( final Context context, final String filename, final String buffer )
@@ -256,15 +253,15 @@ public class Utilities
         }
     }
 
-    public static HashMap<String, ArrayList<EpisodeData>> ReadTvUpdates( final Context context, final String filename )
+    public static HashMap<String, ArrayList<EpisodeData>> ReadTvUpdates( final Context context )
             throws JSONException, IOException
     {
         HashMap<String, ArrayList<EpisodeData>> data_map = new HashMap<>();
         String data_string;
         try {
-            data_string = ReadDataFile( context, filename );
+            data_string = ReadDataFile( context, NetworkManager.ALL_UPDATES_FILENAME);
         } catch (IOException except ){
-            FileOutputStream output_stream = context.openFileOutput( filename, Context.MODE_PRIVATE );
+            FileOutputStream output_stream = context.openFileOutput(NetworkManager.ALL_UPDATES_FILENAME, Context.MODE_PRIVATE );
             Writer writer = new OutputStreamWriter( output_stream );
             data_string = "[]";
             writer.write( data_string );
@@ -296,8 +293,8 @@ public class Utilities
         }
         return data_map;
     }
-    public static void WriteTvUpdateData( final Context context, final String filename,
-                                          final HashMap<String, ArrayList<EpisodeData>> data )
+    public static void WriteTvUpdateData(final Context context,
+                                         final HashMap<String, ArrayList<EpisodeData>> data)
             throws JSONException, IOException
     {
         if( data.isEmpty() ) return;
@@ -317,6 +314,6 @@ public class Utilities
             item.put( "detail", item_detail );
             root_list.put( item );
         }
-        WriteDataToDisk( context, filename, root_list.toString() );
+        WriteDataToDisk( context, NetworkManager.ALL_UPDATES_FILENAME, root_list.toString() );
     }
 }

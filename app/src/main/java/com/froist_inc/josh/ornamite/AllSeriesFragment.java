@@ -23,6 +23,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Filterable;
 import android.widget.HeaderViewListAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -176,8 +177,18 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
     @Override
     public void onListItemClick( ListView list_view, View v, int position, long id )
     {
-        final HeaderViewListAdapter header_adapter = ( HeaderViewListAdapter ) list_view.getAdapter();
-        final AllSeriesAdapter list_adapter = ( AllSeriesAdapter ) header_adapter.getWrappedAdapter();
+        AllSeriesAdapter list_adapter;
+        /* for weird reasons, I sometimes get a crash error with a message:
+        ```AllSeriesAdapter cannot be cast to android.widget.HeaderViewListAdapter```
+        so let's see if this will work.
+         */
+        ListAdapter generic_adapter = list_view.getAdapter();
+        if( generic_adapter instanceof HeaderViewListAdapter ){
+            final HeaderViewListAdapter header_adapter = ( HeaderViewListAdapter ) generic_adapter;
+            list_adapter = ( AllSeriesAdapter ) header_adapter.getWrappedAdapter();
+        } else {
+            list_adapter = ( AllSeriesAdapter ) generic_adapter;
+        }
         final String show_name = list_adapter.getItem( position );
         final Utilities.TvSeriesData data = Utilities.AllSeries.get( show_name );
         Intent intent = new Intent( AllSeriesFragment.this.getContext(), ListSeasonsActivity.class );
@@ -226,7 +237,7 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
     {
         super.onPause();
         try {
-            Utilities.WriteTvSeriesData(this.getContext(), NetworkManager.ALL_SERIES_FILENAME, Utilities.AllSeries );
+            Utilities.WriteTvSeriesData(this.getContext(), Utilities.AllSeries );
         } catch ( JSONException | IOException except ){
             Log.v( "AllSeriesFragment", except.getLocalizedMessage() );
         }
@@ -286,9 +297,9 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
 
     public static class ListSeriesAsyncTask extends AsyncTask<Void, Void, HashMap<String, Utilities.TvSeriesData>>
     {
-        private Context context;
+        private final Context context;
         private String error_message;
-        private PostResultAction callback_listener;
+        private final PostResultAction callback_listener;
 
         public interface PostResultAction
         {
@@ -306,7 +317,7 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
         {
             try {
                 if( Utilities.AllSeries == null || Utilities.AllSeries.size() != 0 ) {
-                    return Utilities.ReadTvSeriesData( context, NetworkManager.ALL_SERIES_FILENAME );
+                    return Utilities.ReadTvSeriesData( context);
                 }
                 return Utilities.AllSeries;
             } catch ( JSONException | IOException except ){

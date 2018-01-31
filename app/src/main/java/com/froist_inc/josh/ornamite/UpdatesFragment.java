@@ -83,7 +83,7 @@ public class UpdatesFragment extends Fragment
     {
         super.onPause();
         try {
-            Utilities.WriteTvUpdateData( this.getContext(), NetworkManager.ALL_UPDATES_FILENAME, Utilities.AllUpdates );
+            Utilities.WriteTvUpdateData( this.getContext(), Utilities.AllUpdates );
         } catch ( JSONException | IOException exception ){
             Log.v( "SavingState", exception.getLocalizedMessage() );
         }
@@ -121,17 +121,15 @@ public class UpdatesFragment extends Fragment
 
     private class LoadUpdatesTask extends AsyncTask<Void, Void, HashMap<String, ArrayList<Utilities.EpisodeData>>>
     {
-        String error_message;
         @Override
         protected HashMap<String, ArrayList<Utilities.EpisodeData>> doInBackground( Void... params )
         {
             try {
                 if( Utilities.AllUpdates == null || Utilities.AllUpdates.size() != 0 ) {
-                    return Utilities.ReadTvUpdates( getActivity(), NetworkManager.ALL_UPDATES_FILENAME );
+                    return Utilities.ReadTvUpdates( getActivity());
                 }
                 return Utilities.AllUpdates;
             } catch ( JSONException | IOException except ){
-                error_message = except.getLocalizedMessage();
                 return null;
             }
         }
@@ -143,7 +141,7 @@ public class UpdatesFragment extends Fragment
         }
     }
 
-    void SetAdapter( final HashMap<String, ArrayList<Utilities.EpisodeData>> data_map )
+    private void SetAdapter( final HashMap<String, ArrayList<Utilities.EpisodeData>> data_map)
     {
         int position = 0, index = 0;
         final String today = Utilities.GetDateFromCalendar( GregorianCalendar.getInstance() );
@@ -181,7 +179,7 @@ public class UpdatesFragment extends Fragment
         root_list_view.addFooterView( footer_view );
     }
 
-    void RefreshTodaysUpdate()
+    private void RefreshTodaysUpdate()
     {
         refresh_menu.setEnabled( false );
         overlay_view.setVisibility( View.VISIBLE );
@@ -280,9 +278,9 @@ public class UpdatesFragment extends Fragment
 
     private class UpdatesFragmentAdapter extends BaseExpandableListAdapter
     {
-        private ArrayList<String> header_lists; // dates of updates
+        private final ArrayList<String> header_lists; // dates of updates
         private final HashMap<String, ArrayList<Utilities.EpisodeData>> data_map;
-        private Context context;
+        private final Context context;
 
         UpdatesFragmentAdapter( final Context context, HashMap<String, ArrayList<Utilities.EpisodeData>> data_map,
                                 final ArrayList<String> headers )

@@ -210,6 +210,8 @@ public class ListEpisodesFragment extends ListFragment
 
     private void OnFetchSuccessful( final ArrayList<Utilities.EpisodeData> episode_list )
     {
+        final Context context = ListEpisodesFragment.this.getContext();
+        if( context == null ) return;
         setListAdapter( new EpisodeAdapter( ListEpisodesFragment.this.getContext(),
                 episode_list.isEmpty() ? null : episode_list ) );
         setListShown( true );

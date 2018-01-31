@@ -45,11 +45,11 @@ public class UpdateBackgroundService extends IntentService
         CheckUpdateAndNotifyUserIfAny( this );
     }
 
-    public static void CheckUpdateAndNotifyUserIfAny( final Context context )
+    private static void CheckUpdateAndNotifyUserIfAny(final Context context)
     {
         try {
             final HashMap<String, ArrayList<Utilities.EpisodeData>> tv_updates =
-                    Utilities.ReadTvUpdates( context, NetworkManager.ALL_UPDATES_FILENAME );
+                    Utilities.ReadTvUpdates( context);
             if( tv_updates == null ) return;
             final String todays_date = Utilities.GetDateFromCalendar( GregorianCalendar.getInstance() );
             final ArrayList<Utilities.EpisodeData> updates_data = tv_updates.get( todays_date );
@@ -62,9 +62,8 @@ public class UpdateBackgroundService extends IntentService
         }
     }
 
-    public static void FetchUpdates( final Context context,
+    private static void FetchUpdates( final Context context,
                                      final HashMap<String, ArrayList<Utilities.EpisodeData>> all_updates )
-            throws JSONException, IOException
     {
         try {
             final String url = NetworkManager.UPDATES_URL + "?date=" + Utilities.Today();
@@ -83,7 +82,7 @@ public class UpdateBackgroundService extends IntentService
                 {
                     all_updates.put( entry.getKey(), entry.getValue() );
                 }
-                Utilities.WriteTvUpdateData( context, NetworkManager.ALL_UPDATES_FILENAME, all_updates );
+                Utilities.WriteTvUpdateData( context, all_updates );
                 Log.v( TAG, "Filtering TV Updates" );
                 FilterSubscriptionAndNotifyUser( context, result_details );
             } else {
@@ -98,7 +97,7 @@ public class UpdateBackgroundService extends IntentService
     {
         try {
             final HashMap<String, Utilities.TvSeriesData> all_tv_series =
-                    Utilities.ReadTvSeriesData( context, NetworkManager.ALL_SERIES_FILENAME );
+                    Utilities.ReadTvSeriesData( context);
             final HashSet<String> subscribed = new HashSet<>();
             for ( HashMap.Entry<String, Utilities.TvSeriesData> entry_pair : all_tv_series.entrySet() ) {
                 if( entry_pair.getValue().IsSubscribed() ) subscribed.add( entry_pair.getKey() );
@@ -132,7 +131,7 @@ public class UpdateBackgroundService extends IntentService
 
         Notification notification = new NotificationCompat.Builder( context )
                 .setTicker( "New TV Series available" )
-                .setSmallIcon( R.drawable.logo )
+                .setSmallIcon( R.drawable.tv_show )
                 .setContentTitle( "TV Series updates" )
                 .setContentText( text_builder.toString() )
                 .setContentIntent( pending_intent )

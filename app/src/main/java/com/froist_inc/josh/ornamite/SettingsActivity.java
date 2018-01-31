@@ -17,7 +17,6 @@ public class SettingsActivity extends AppCompatActivity
     private static final int MIN_RANGE = 1;
     public static final int DEFAULT_RANGE = 7;
 
-    private int initial_value;
     private int updated_value;
 
     @Override
@@ -28,7 +27,7 @@ public class SettingsActivity extends AppCompatActivity
         setTitle( R.string.action_settings );
 
         final SharedPreferences shared_preferences = PreferenceManager.getDefaultSharedPreferences( SettingsActivity.this );
-        initial_value = shared_preferences.getInt( CLEANUP_INTERVAL, DEFAULT_RANGE );
+        int initial_value = shared_preferences.getInt( CLEANUP_INTERVAL, DEFAULT_RANGE );
         initial_value = initial_value >= MAX_RANGE ? MAX_RANGE : ( initial_value <= MIN_RANGE ? MIN_RANGE : initial_value );
         updated_value = initial_value;
 
@@ -38,7 +37,7 @@ public class SettingsActivity extends AppCompatActivity
         final TextView cleanup_text = ( TextView ) findViewById( R.id.cleanup_text_view );
         cleanup_text.setText( getString( R.string.cleanup_text, updated_value));
 
-        cleanup_bar.setProgress( initial_value );
+        cleanup_bar.setProgress(initial_value);
         cleanup_bar.setOnSeekBarChangeListener( new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged( SeekBar seekBar, int progress, boolean from_user ) {

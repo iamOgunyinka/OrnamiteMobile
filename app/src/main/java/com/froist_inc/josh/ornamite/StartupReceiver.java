@@ -12,9 +12,10 @@ public class StartupReceiver extends BroadcastReceiver
     public void onReceive( final Context context, final Intent intent )
     {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences( context );
-
-        boolean auto_update_is_on = preferences.getBoolean( UpdateBackgroundService.AUTO_CHECK_UPDATE_IS_ON, false );
-        UpdateBackgroundService.SetServiceAlarm( context, auto_update_is_on );
-        UpdateCleanupService.UpdateCleanupAlarm( context, true );
+        if( Intent.ACTION_BOOT_COMPLETED.equals( intent.getAction() ) ) {
+            boolean auto_update_is_on = preferences.getBoolean( UpdateBackgroundService.AUTO_CHECK_UPDATE_IS_ON, false );
+            UpdateBackgroundService.SetServiceAlarm( context, auto_update_is_on );
+            UpdateCleanupService.UpdateCleanupAlarm( context );
+        }
     }
 }

@@ -20,9 +20,9 @@ import java.util.HashMap;
 
 public class UpdateCleanupService extends IntentService
 {
-    public static final String TAG = "UpdateCleanup";
+    private static final String TAG = "UpdateCleanup";
     private static final int A_MINUTE = 1000 * 60;
-    public static final int TWELVE_HOURS_INTERVAL = ( A_MINUTE * 60 ) * 12;
+    private static final int TWELVE_HOURS_INTERVAL = ( A_MINUTE * 60 ) * 12;
 
     public UpdateCleanupService(){
         super( TAG );
@@ -38,7 +38,7 @@ public class UpdateCleanupService extends IntentService
     {
         HashMap<String, ArrayList<Utilities.EpisodeData>> tv_updates = null;
         try {
-            tv_updates = Utilities.ReadTvUpdates( context, NetworkManager.ALL_UPDATES_FILENAME );
+            tv_updates = Utilities.ReadTvUpdates( context);
             if( tv_updates == null ) return;
             SharedPreferences shared_preferences = PreferenceManager.getDefaultSharedPreferences( context );
             int number_of_cleanup_days = shared_preferences.getInt( SettingsActivity.CLEANUP_INTERVAL,
@@ -51,12 +51,12 @@ public class UpdateCleanupService extends IntentService
                     pardoned_data.put( key, tv_updates.get( key ) );
                 }
             }
-            Utilities.WriteTvUpdateData( context, NetworkManager.ALL_UPDATES_FILENAME, pardoned_data );
+            Utilities.WriteTvUpdateData( context, pardoned_data );
         } catch ( JSONException | IOException except ){
             Log.v( TAG, except.getLocalizedMessage() );
             if( tv_updates != null ){
                 try {
-                    Utilities.WriteTvUpdateData(context, NetworkManager.ALL_UPDATES_FILENAME, tv_updates);
+                    Utilities.WriteTvUpdateData(context, tv_updates);
                 } catch( JSONException | IOException exception ){
                     Log.v( TAG, exception.getLocalizedMessage() );
                 }
@@ -76,17 +76,11 @@ public class UpdateCleanupService extends IntentService
         return dates;
     }
 
-    public static void UpdateCleanupAlarm( final Context context, boolean starting_service )
+    public static void UpdateCleanupAlarm(final Context context)
     {
         Intent intent = new Intent( context, UpdateCleanupService.class );
         PendingIntent pending_intent = PendingIntent.getService( context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT );
         AlarmManager alarm_manager = ( AlarmManager ) context.getSystemService( Context.ALARM_SERVICE );
-        if( starting_service ) {
-            alarm_manager.setRepeating( AlarmManager.RTC, System.currentTimeMillis(), TWELVE_HOURS_INTERVAL,
-                    pending_intent );
-        } else {
-            alarm_manager.cancel( pending_intent );
-            pending_intent.cancel();
-        }
+        alarm_manager.setRepeating( AlarmManager.RTC, System.currentTimeMillis(), TWELVE_HOURS_INTERVAL, pending_intent );
     }
 }
