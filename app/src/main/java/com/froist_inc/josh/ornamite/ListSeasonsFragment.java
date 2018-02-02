@@ -242,8 +242,11 @@ public class ListSeasonsFragment extends Fragment
         if( refresh_menu != null ) refresh_menu.setEnabled( true );
         loading_view.setVisibility( View.INVISIBLE );
         list_view.setEmptyView( empty_view );
-        AlertDialog dialog = new AlertDialog.Builder( ListSeasonsFragment.this.getContext() ).setTitle( "Error" )
-                .setMessage( message ).setPositiveButton( android.R.string.ok, null ).create();
+        final Context fragment_context = ListSeasonsFragment.this.getContext();
+        if( fragment_context == null ) return;
+        
+        AlertDialog dialog = new AlertDialog.Builder( fragment_context ).setTitle( "Error" ).setMessage( message )
+                .setPositiveButton( android.R.string.ok, null ).create();
         dialog.show();
     }
 

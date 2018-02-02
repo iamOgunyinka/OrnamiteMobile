@@ -55,9 +55,16 @@ class Utilities
     {
         final Calendar calendar = GregorianCalendar.getInstance();
         final int day = calendar.get( Calendar.DAY_OF_MONTH );
-        final int month = calendar.get( Calendar.MONTH );
         final int year = calendar.get( Calendar.YEAR );
+        // prior to Java 8, months are 0-index based, we need to get the human-readable 1-index based
+        int month = GetMonth( calendar.get( Calendar.MONTH ) );
+        if( month == 0 ) month = 12; // December
         return String.format( Locale.US, "%d-%d-%d", year, month, day );
+    }
+    
+    private static int GetMonth( final int java_month )
+    {
+        return ( java_month + 1 ) % 12;
     }
 
     public static String GetDateFromCalendar( final Calendar calendar )

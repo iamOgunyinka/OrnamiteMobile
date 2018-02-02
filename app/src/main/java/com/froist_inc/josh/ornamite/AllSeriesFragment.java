@@ -352,12 +352,14 @@ public class AllSeriesFragment extends ListFragment implements SearchView.OnQuer
             keys.add( ( String ) data_pair.getKey() );
         }
 
-        LayoutInflater inflater = ( LayoutInflater ) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-        View footer_view = inflater.inflate( R.layout.list_view_footer, null, false );
-        TextView series_count_text = (TextView) footer_view.findViewById( R.id.series_count_text );
-        series_count_text.setText( getString( R.string.series_count, keys.size() ));
-        getListView().addFooterView( footer_view );
-
+        // add footer *iff* there are none
+        if( getListView().getFooterViewsCount() == 0 ) {
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+            View footer_view = inflater.inflate( R.layout.list_view_footer, null, false );
+            TextView series_count_text = (TextView) footer_view.findViewById( R.id.series_count_text );
+            series_count_text.setText( getString( R.string.series_count, keys.size() ) );
+            getListView().addFooterView( footer_view );
+        }
         setListAdapter( new AllSeriesAdapter( context, keys ) );
         (( AllSeriesAdapter ) getListAdapter() ).notifyDataSetChanged();
     }

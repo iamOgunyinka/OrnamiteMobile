@@ -68,15 +68,18 @@ public class ListSubscriptionsFragment extends ListFragment
         final ArrayList<String> subscribed = new ArrayList<>();
         for ( HashMap.Entry <String, Utilities.TvSeriesData> data_entry: all_series.entrySet() ) {
             final Utilities.TvSeriesData value = data_entry.getValue();
-            if (value.IsSubscribed()) subscribed.add( data_entry.getKey() );
+            if ( value.IsSubscribed()) subscribed.add( data_entry.getKey() );
         }
 
-        LayoutInflater inflater = ( LayoutInflater ) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-        View footer_view = inflater.inflate( R.layout.list_view_footer, null, false );
-        series_count_text = (TextView) footer_view.findViewById( R.id.series_count_text );
-        series_count_text.setText( getString( R.string.series_count, subscribed.size() ));
+        if( getListView().getFooterViewsCount() == 0 ) {
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+            View footer_view = inflater.inflate( R.layout.list_view_footer, null, false );
+            series_count_text = (TextView) footer_view.findViewById(R.id.series_count_text);
+            series_count_text.setText(getString(R.string.series_count, subscribed.size()));
 
-        getListView().addFooterView( footer_view );
+            getListView().addFooterView(footer_view);
+        }
+
         setListAdapter( new SubscriptionsAdapter( context, subscribed ) );
     }
 

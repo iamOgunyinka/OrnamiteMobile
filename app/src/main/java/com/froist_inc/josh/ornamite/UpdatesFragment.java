@@ -164,7 +164,14 @@ public class UpdatesFragment extends Fragment
 
         AddFooter();
 
-        root_list_view.setAdapter( new UpdatesFragmentAdapter( this.getContext(), Utilities.AllUpdates, headers ));
+        Context context = this.getContext();
+        if( context == null ){ // if the fragment context is unusable, use the activity's
+            context = getActivity();
+            if( context == null ) {
+                return;
+            }
+        }
+        root_list_view.setAdapter( new UpdatesFragmentAdapter( context, Utilities.AllUpdates, headers ));
         if( Utilities.AllUpdates != null && Utilities.AllUpdates.size() > 0 ) {
             root_list_view.smoothScrollToPosition( position );
             root_list_view.expandGroup( position );
@@ -174,15 +181,18 @@ public class UpdatesFragment extends Fragment
 
     private void AddFooter()
     {
-        LayoutInflater inflater = ( LayoutInflater ) getActivity().getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-        View footer_view = inflater.inflate( R.layout.list_view_footer, null, false );
-        root_list_view.addFooterView( footer_view );
+        if( root_list_view.getFooterViewsCount() == 0 ) {
+            LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+            View footer_view = inflater.inflate( R.layout.list_view_footer, null, false );
+            root_list_view.addFooterView( footer_view );
+        }
     }
 
     private void RefreshTodaysUpdate()
     {
         refresh_menu.setEnabled( false );
         overlay_view.setVisibility( View.VISIBLE );
+        
         Thread new_thread = new Thread( new Runnable() {
             @Override
             public void run()
@@ -199,28 +209,34 @@ public class UpdatesFragment extends Fragment
                     if( result != null && ( result.getInt("status") == Utilities.Success )){
                         JSONArray details = result.getJSONArray( "detail" );
                         final HashMap<String, ArrayList<Utilities.EpisodeData>> parsing_result = ParseResult( details );
-                        main_ui_handler.post( new Runnable() {
-                            @Override
-                            public void run()
-                            {
-                                OnFetchSuccessful( parsing_result );
-                            }
-                        });
+
+                        if( main_ui_handler != null && main_ui_handler.getLooper() != null ) {
+                            main_ui_handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    OnFetchSuccessful( parsing_result );
+                                }
+                            });
+                        }
                     } else {
+                        if( main_ui_handler != null && main_ui_handler.getLooper() != null ) {
+                            main_ui_handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    OnFetchFailed( message );
+                                }
+                            });
+                        }
+                    }
+                } catch ( JSONException | IOException exception ){
+                    if( main_ui_handler != null && main_ui_handler.getLooper() != null ) {
                         main_ui_handler.post( new Runnable() {
                             @Override
                             public void run() {
-                                OnFetchFailed( message );
+                                OnFetchFailed( exception.getMessage() );
                             }
                         });
                     }
-                } catch ( JSONException | IOException exception ){
-                    main_ui_handler.post( new Runnable() {
-                        @Override
-                        public void run() {
-                            OnFetchFailed( exception.getMessage() );
-                        }
-                    });
                 }
             }
         });
